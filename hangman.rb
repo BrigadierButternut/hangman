@@ -3,10 +3,10 @@
 #Player should select a letter ✓
 #Game will then check if the letter exists wihtin the chosen word ✓
 #If the letter is present, the game should print out a string representing the current state of the string with guessed letters ✓
-#If the letter is not present, the game should log the letter in a bank of incorrect guesses
-#After logging an incorrect guess, the board should be redrawn to include an additional limb of the hangman
-#If the incorrect letter wordbank exceeds six letters, the game is over and the player has lost
-#If the player has successfully guessed every letter, the game is over and the player has won
+#If the letter is not present, the game should log the letter in a bank of incorrect guesses ✓
+#After logging an incorrect guess, the board should be redrawn to include an additional limb of the hangman ✓
+#If the incorrect letter wordbank exceeds six letters, the game is over and the player has lost ✓
+#If the player has successfully guessed every letter, the game is over and the player has won ✓
 
 
 #First thing's first: lets load up the wordlist
@@ -18,7 +18,7 @@ File.readlines('wordlist.txt').map(&:strip).each do |line|
   end
 end
 
-#end_board defines what the board will look like at the end of the game
+#end_board defines what the board will look like at the end of the game; this is mostly for my benefit.
 def end_board
   @end_board = []
   @end_board.push("|-------")
@@ -98,9 +98,18 @@ def play_hangman
     get_player_choice
 
     if @word.include? @player_guess #if player guess is correct...
-      char_array = @word.scan /\w/
-      char_index = char_array.index{|char| char == @player_guess}
-      @word_progress[char_index] = @player_guess
+      char_array = @word.scan /\w/ #break the word up into a character array
+      index_array = [] #index array to keep track of all indices where letter occurs
+      #for all locations where the character the player guessed exists in the solution, add the index to the index array
+      char_array.each_with_index do |char, index|
+        if char == @player_guess
+          index_array << index
+        end
+      end
+      #at each index of the solution where the player guessed character occurs, replace the blank with the player guessed character
+      index_array.each do |index|
+        @word_progress[index] = @player_guess
+      end
       puts "That letter is in the solution"
     else #if player guess is incorrect...
       @player_guesses << @player_guess
@@ -121,7 +130,6 @@ def play_hangman
       elsif @player_guesses.length == 7
         @board[4] = @end_board[4]
       end
-
     end
 
     display_board(@board)
@@ -131,6 +139,7 @@ def play_hangman
     puts "Incorrect guesses: #{@player_guesses.join ", "}"
 
   end #end of until loop
+  puts "Answer: #{@word}"
 end #end of play_hangman definition
 
 play_hangman
