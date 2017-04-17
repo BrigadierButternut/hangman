@@ -1,13 +1,4 @@
-#Game should select a word between 5-12 characters long ✓
-#Game should build a word ✓
-#Player should select a letter ✓
-#Game will then check if the letter exists wihtin the chosen word ✓
-#If the letter is present, the game should print out a string representing the current state of the string with guessed letters ✓
-#If the letter is not present, the game should log the letter in a bank of incorrect guesses ✓
-#After logging an incorrect guess, the board should be redrawn to include an additional limb of the hangman ✓
-#If the incorrect letter wordbank exceeds six letters, the game is over and the player has lost ✓
-#If the player has successfully guessed every letter, the game is over and the player has won ✓
-
+require 'json'
 
 #First thing's first: lets load up the wordlist
 @wordlist = []
@@ -87,6 +78,82 @@ def get_player_choice
   end
 end
 
+def correct_guess
+  char_array = @word.scan /\w/ #break the word up into a character array
+  index_array = [] #index array to keep track of all indices where letter occurs
+  #for all locations where the character the player guessed exists in the solution, add the index to the index array
+  char_array.each_with_index do |char, index|
+    if char == @player_guess
+      index_array << index
+    end
+  end
+  #at each index of the solution where the player guessed character occurs, replace the blank with the player guessed character
+  index_array.each do |index|
+    @word_progress[index] = @player_guess
+  end
+  puts "That letter is in the solution"
+end
+
+def incorrect_guess
+  @player_guesses << @player_guess
+  puts "That letter is not in the solution"
+
+  if @player_guesses.length == 1
+    @board[1] = @end_board[1]
+  elsif @player_guesses.length == 2
+    @board[2] = @end_board[2]
+  elsif @player_guesses.length == 3
+    @board[3] ="|     |"
+  elsif @player_guesses.length == 4
+    @board[3] = "|    /|"
+  elsif @player_guesses.length == 5
+    @board[3] = @end_board[3]
+  elsif @player_guesses.length == 6
+    @board[4] = "|    / "
+  elsif @player_guesses.length == 7
+    @board[4] = @end_board[4]
+  end
+end
+
+def save_game
+  save_data = {
+    player_guesses: @player_guesses,
+    board: @board,
+    word_progress: @word_progress,
+    word: @word
+  }.to_json
+
+  puts "Please input a filename"
+  file_name = gets.chomp
+  File.open("saves/#{file_name}.json","w+") {|save| save.write(save_data)}
+end
+
+def load_game
+  all_saves = Dir.entries("saves").reject{|entry| entry=~ /^\./}
+  puts "Select save file (type any number 1-#{all_saves.length})"
+  all_saves.each_with_index do |file, index|
+    puts "#{index+1}. #{file}"
+  end
+
+  menu_choice = (gets.chomp.to_i)-1
+
+  if menu_choice.between?(1,all_saves.length)
+    file_selection = all_saves[menu_choice]
+  else
+    puts "The menu choices only range from 1 to #{all_saves.length}; try again."
+    return load_game
+  end
+  
+  load_data = JSON.load(File.open("saves/#{file_selection}"))
+
+  #reassinging variables based on data from the save file
+  @word = load_data["word"]
+  @board = load_data["board"]
+  @word_progress = load_data["word_progress"]
+  @player_guesses = load_data["player_guesses"]
+
+end
+
 def play_hangman
 
   start_game
@@ -98,48 +165,19 @@ def play_hangman
     get_player_choice
 
     if @word.include? @player_guess #if player guess is correct...
-      char_array = @word.scan /\w/ #break the word up into a character array
-      index_array = [] #index array to keep track of all indices where letter occurs
-      #for all locations where the character the player guessed exists in the solution, add the index to the index array
-      char_array.each_with_index do |char, index|
-        if char == @player_guess
-          index_array << index
-        end
-      end
-      #at each index of the solution where the player guessed character occurs, replace the blank with the player guessed character
-      index_array.each do |index|
-        @word_progress[index] = @player_guess
-      end
-      puts "That letter is in the solution"
+      correct_guess
     else #if player guess is incorrect...
-      @player_guesses << @player_guess
-      puts "That letter is not in the solution"
-
-      if @player_guesses.length == 1
-        @board[1] = @end_board[1]
-      elsif @player_guesses.length == 2
-        @board[2] = @end_board[2]
-      elsif @player_guesses.length == 3
-        @board[3] ="|     |"
-      elsif @player_guesses.length == 4
-        @board[3] = "|    /|"
-      elsif @player_guesses.length == 5
-        @board[3] = @end_board[3]
-      elsif @player_guesses.length == 6
-        @board[4] = "|    / "
-      elsif @player_guesses.length == 7
-        @board[4] = @end_board[4]
-      end
+      incorrect_guess
     end
 
     display_board(@board)
     puts ""
-    puts @word_progress
+    puts @word_progress.capitalize
     puts ""
     puts "Incorrect guesses: #{@player_guesses.join ", "}"
 
   end #end of until loop
-  puts "Answer: #{@word}"
+  puts "Answer: #{@word.capitalize}"
 end #end of play_hangman definition
 
 play_hangman
