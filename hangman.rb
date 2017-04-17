@@ -62,16 +62,44 @@ end
 
 def start_game
   puts "HANGMAN"
-  select_word
-  start_board
   end_board
-  display_board(@board)
-  #maintain an array of incorrect player guesses
-  @player_guesses = []
+  display_board(@end_board)
+  puts "1. NEW GAME"
+  puts "2. LOAD GAME"
+
+  player_choice
+
 end
 
+def player_choice
+  game_type = gets.chomp
+  if game_type == '1'
+    select_word
+    start_board
+    #maintain an array of incorrect player guesses
+    @player_guesses = []
+    display_board(@board)
+  elsif game_type == '2'
+    load_game
+  else
+    puts "Please choose '1' or '2' "
+    return player_choice
+  end
+end
+
+
+
 def get_player_choice
-  @player_guess = gets.chomp
+  temp = gets.chomp.downcase
+  if temp == "save"
+    save_game
+  elsif temp.length == 1
+    @player_guess = temp
+  else
+    puts "You may only guess one letter at a time; try again, please"
+    return get_player_choice
+  end
+
   if @player_guesses.include? @player_guess
     puts "That letter has already been used; please choose another"
     return get_player_choice
@@ -137,13 +165,18 @@ def load_game
 
   menu_choice = (gets.chomp.to_i)-1
 
-  if menu_choice.between?(1,all_saves.length)
+  if all_saves.length < 1
+    puts "No files to load from"
+    return start_game
+  end
+
+  if menu_choice.between?(0,all_saves.length)
     file_selection = all_saves[menu_choice]
   else
     puts "The menu choices only range from 1 to #{all_saves.length}; try again."
     return load_game
   end
-  
+
   load_data = JSON.load(File.open("saves/#{file_selection}"))
 
   #reassinging variables based on data from the save file
@@ -152,6 +185,16 @@ def load_game
   @word_progress = load_data["word_progress"]
   @player_guesses = load_data["player_guesses"]
 
+  player_progress
+
+end
+
+def player_progress
+  display_board(@board)
+  puts ""
+  puts @word_progress.capitalize
+  puts ""
+  puts "Incorrect guesses: #{@player_guesses.join ", "}"
 end
 
 def play_hangman
@@ -170,11 +213,7 @@ def play_hangman
       incorrect_guess
     end
 
-    display_board(@board)
-    puts ""
-    puts @word_progress.capitalize
-    puts ""
-    puts "Incorrect guesses: #{@player_guesses.join ", "}"
+    player_progress
 
   end #end of until loop
   puts "Answer: #{@word.capitalize}"
