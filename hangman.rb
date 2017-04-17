@@ -61,12 +61,15 @@ def game_over?
 end
 
 def start_game
+  puts ""
   puts "HANGMAN"
+  puts "type 'save' at anytime to save your game"
+  puts "type 'quit' to return to the main menu"
   end_board
   display_board(@end_board)
   puts "1. NEW GAME"
   puts "2. LOAD GAME"
-
+  puts ""
   player_choice
 
 end
@@ -81,6 +84,8 @@ def player_choice
     display_board(@board)
   elsif game_type == '2'
     load_game
+  elsif game_type == 'quit'
+    exit
   else
     puts "Please choose '1' or '2' "
     return player_choice
@@ -93,6 +98,9 @@ def get_player_choice
   temp = gets.chomp.downcase
   if temp == "save"
     save_game
+    return get_player_choice
+  elsif temp == "quit"
+    return play_hangman
   elsif temp.length == 1
     @player_guess = temp
   else
