@@ -65,6 +65,7 @@ def start_game
   puts "HANGMAN"
   puts "type 'save' at anytime to save your game"
   puts "type 'quit' to return to the main menu"
+  puts "type 'exit' to exit the game"
   end_board
   display_board(@end_board)
   puts "1. NEW GAME"
@@ -82,9 +83,10 @@ def player_choice
     #maintain an array of incorrect player guesses
     @player_guesses = []
     display_board(@board)
+    puts @word_progress.capitalize
   elsif game_type == '2'
     load_game
-  elsif game_type == 'quit'
+  elsif game_type == 'exit'
     exit
   else
     puts "Please choose '1' or '2' "
